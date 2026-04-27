@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>The Last Book - Minimal Note</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Playfair+Display:wght@400;700&family=Zilla+Slab:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+
+    <style>
+        /* ================= 基础变量与主题 ================= */
+        :root {
+            --bg-color: #8da48d;
+            --text-color: #1a1a1a;
+            --font-main: 'Courier Prime', monospace, sans-serif;
+            --item-bg: rgba(255, 255, 255, 0.3);
+            --border-style: 1px solid rgba(0,0,0,0.15); 
+            --accent-color: #fcfcfc;
+            --track-bg: rgba(0,0,0,0.08); 
+            --success-color: #5cb85c;     
+            --info-color: #5bc0de;        
+            --danger-color: #e74c3c;      
+        }
+        body.theme-vintage {
+            --bg-color: #fdf5e6; --text-color: #2c2c2c; --font-main: 'Playfair Display', serif;
+            --item-bg: rgba(255, 255, 255, 0.6); --border-style: 1px double #2c2c2c; --accent-color: #2c2c2c; --track-bg: rgba(0,0,0,0.05);
+        }
+        body.theme-blue {
+            --bg-color: #c0d6eb; --text-color: #1c3d5a; --font-main: 'Zilla Slab', serif;
+            --item-bg: #fdfdfd; --border-style: 2px solid #b8211b; --accent-color: #b8211b; --track-bg: rgba(0,0,0,0.1);
+        }
+
+        /* ================= 全局样式 ================= */
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent;}
+        body { background-color: var(--bg-color); color: var(--text-color); font-family: var(--font-main); height: 100vh; overflow: hidden; transition: background-color 0.5s ease; }
+        input, textarea, [contenteditable] { user-select: text; font-family: inherit; }
+        
+        #app { width: 100%; height: 100%; position: relative; max-width: 600px; margin: 0 auto; background: var(--bg-color); box-shadow: 0 0 20px rgba(0,0,0,0.1); overflow: hidden; display: flex; flex-direction: column;}
+        .header { padding: 20px; text-align: center; font-size: 24px; font-weight: bold; letter-spacing: 2px; flex-shrink: 0; display: flex; justify-content: space-between; align-items: center;}
+        .header.vintage-border { border: var(--border-style); margin: 10px; padding: 15px; border-radius: 5px;}
+        
+        /* ================= 主列表视图 ================= */
+        #list-view { display: flex; flex-direction: column; height: 100%; width: 100%; transition: transform 0.3s ease; }
+        #notes-container { flex: 1; overflow-y: auto; padding: 10px 20px; scroll-behavior: smooth; }
+        #notes-container::-webkit-scrollbar { width: 0px; } 
+        
+        .note-wrapper { position: relative; margin-bottom: 15px; border-radius: 8px; background-color: var(--track-bg); box-shadow: inset 0 2px 6px rgba(0,0,0,0.15); transition: background-color 0.3s ease; touch-action: pan-y; overflow: hidden; }
+        .note-item { position: relative; background: var(--item-bg); border: var(--border-style); padding: 20px 25px; border-radius: 8px; z-index: 1; transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); box-shadow: 0 2px 5px rgba(0,0,0,0.1); cursor: grab; display: flex; align-items: center; justify-content: center; min-height: 64px; touch-action: pan-y; }
+        .note-chosen .note-item { transform: scale(1.03) !important; box-shadow: 0 12px 24px rgba(0,0,0,0.2) !important; border-color: var(--accent-color); transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .note-ghost { opacity: 0; }
+        .note-single-text { font-size: 16px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; text-align: center; padding: 5px 10px; border-radius: 4px; outline: none; transition: background 0.2s; }
+        .note-single-text[contenteditable="true"]:focus { background: rgba(255, 255, 255, 0.4); border: 1px dashed rgba(0,0,0,0.2); cursor: text; }
+
+        #input-area { padding: 15px 20px; background: rgba(0,0,0,0.05); flex-shrink: 0; display: flex; align-items: flex-end; gap: 10px; padding-bottom: max(15px, env(safe-area-inset-bottom)); }
+        #main-input { flex: 1; background: var(--item-bg); border: var(--border-style); border-radius: 20px; padding: 12px 15px; font-size: 16px; outline: none; color: var(--text-color); resize: none; min-height: 44px; max-height: 120px; overflow-y: auto;}
+        #send-btn { background: var(--accent-color); color: var(--bg-color); border: none; width: 44px; height: 44px; border-radius: 50%; font-size: 18px; cursor: pointer; display: flex; justify-content: center; align-items: center;}
+        
+        /* ================= 归档视图 ================= */
+        #archive-view { position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: var(--bg-color); transition: transform 0.3s ease; display: flex; flex-direction: column; z-index: 20; }
+        #archive-view.active { transform: translateX(100%); }
+        .archive-item-layout { display: flex; align-items: center; width: 100%; height: 100%; padding: 0; }
+        .archive-delete-btn { color: var(--danger-color); font-size: 24px; padding: 15px 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; border-right: 1px dashed rgba(0,0,0,0.1); }
+        .archive-delete-btn:active { opacity: 0.5; }
+        .archive-text-area { flex: 1; padding: 20px; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 14px; }
+
+        /* ================= 详情视图 ================= */
+        #detail-view { position: absolute; top: 0; left: 100%; width: 100%; height: 100%; background: var(--bg-color); transition: transform 0.3s ease; display: flex; flex-direction: column; z-index: 30; }
+        #detail-view.active { transform: translateX(-100%); }
+        .detail-header { display: flex; align-items: center; padding: 20px; font-size: 18px; border-bottom: 1px solid rgba(0,0,0,0.1); }
+        .back-btn { margin-right: 15px; cursor: pointer; font-size: 20px; padding: 10px;}
+        #detail-editor { flex: 1; padding: 20px; overflow-y: auto; outline: none; line-height: 1.6; font-size: 16px;}
+        #detail-editor img { max-width: 100%; border-radius: 5px; margin: 10px 0; }
+        #detail-editor[data-empty="true"]::before { content: "在此处粘贴图片或补充详细文字..."; opacity: 0.5; }
+        #detail-bottom-panel { flex-shrink: 0; background: rgba(255,255,255,0.1); border-top: var(--border-style); padding: 15px 20px; padding-bottom: max(15px, env(safe-area-inset-bottom)); display: flex; gap: 10px;}
+        .timeline-container { flex: 1; display: flex; flex-direction: column; gap: 8px; position: relative;}
+        .row-item { display: flex; align-items: flex-start; gap: 10px; background: var(--item-bg); padding: 10px; border-radius: 5px; border: var(--border-style); transition: all 0.3s ease;}
+        .row-label { font-size: 12px; opacity: 0.7; width: 40px; margin-top: 2px;}
+        .row-input { flex: 1; background: transparent; border: none; outline: none; color: var(--text-color); font-size: 14px; resize: none; overflow: hidden; display: block;}
+        .fold-left-anim { transform: translateX(-100%) scale(0.5); opacity: 0; pointer-events: none; position: absolute; }
+        .folder-action { width: 40px; display: flex; flex-direction: column; justify-content: center; align-items: center;}
+        .archive-timeline-btn { background: var(--accent-color); color: var(--bg-color); border: none; width: 40px; height: 100%; border-radius: 5px; cursor: pointer; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 5px;}
+        #timeline-history { padding: 0 20px; max-height: 180px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; margin-bottom: 10px; border-bottom: 1px dashed rgba(0,0,0,0.2); padding-bottom: 15px;}
+        .history-card { font-size: 13px; background: rgba(0,0,0,0.03); padding: 12px 15px; border-radius: 8px; position: relative; margin-left: 8px; }
+        .history-card::before { content: ''; position: absolute; left: -4px; top: 15%; height: 70%; width: 4px; background-color: var(--accent-color); border-radius: 4px; opacity: 0.85; box-shadow: 0 0 2px rgba(0,0,0,0.1); }
+
+        /* ================= 小工具 ================= */
+        .theme-switch { position: absolute; bottom: 80px; right: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 100;}
+        .theme-dot { width: 30px; height: 30px; border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.2);}
+        .dot-1 { background: #8da48d; }
+        .dot-2 { background: #fdf5e6; border-color: #ccc; }
+        .dot-3 { background: #c0d6eb; }
+        .loading-text { font-style: italic; opacity: 0.6; font-size: 14px; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
+    </style>
+</head>
+<body>
+
+<div id="app">
+    <div id="list-view">
+        <div class="header dynamic-border">
+            <i class="fa-solid fa-box-archive" onclick="openArchive()" style="cursor:pointer; font-size: 20px;"></i>
+            <span>THE LAST BOOK</span>
+            <i class="fa-solid fa-pen-nib" style="opacity: 0;"></i>
+        </div>
+        <div id="notes-container"></div>
+        <div id="input-area">
+            <textarea id="main-input" placeholder="输入想法..." rows="1" oninput="autoResize(this)"></textarea>
+            <button id="send-btn" onclick="addNote()"><i class="fa-solid fa-arrow-up"></i></button>
+        </div>
+    </div>
+
+    <div id="archive-view">
+        <div class="header dynamic-border">
+            <span style="width: 20px;"></span>
+            <span>收纳筐 / Archive</span>
+            <i class="fa-solid fa-times back-btn" onclick="closeArchive()"></i>
+        </div>
+        <div id="archive-container" style="flex: 1; overflow-y: auto; padding: 20px;"></div>
+    </div>
+
+    <div id="detail-view">
+        <div class="detail-header dynamic-border">
+            <i class="fa-solid fa-chevron-left back-btn" onclick="closeDetail()"></i>
+            <span style="flex:1; text-align: center; font-weight:bold;">详情 / Details</span>
+            <span style="width: 30px;"></span>
+        </div>
+        <div id="timeline-history"></div> 
+        <div id="detail-editor" contenteditable="true" data-empty="true" oninput="checkEditorEmpty(this)"></div>
+        <div id="detail-bottom-panel">
+            <div class="timeline-container" id="current-timeline-box">
+                <div class="row-item"><span class="row-label">时间</span><input type="text" class="row-input" id="dt-time" readonly></div>
+                <div class="row-item"><span class="row-label">前提</span><textarea class="row-input" id="dt-premise" rows="1" oninput="autoResize(this)"></textarea></div>
+                <div class="row-item"><span class="row-label">验证</span><textarea class="row-input" id="dt-blocker" rows="1" oninput="autoResize(this)"></textarea></div>
+            </div>
+            <div class="folder-action">
+                <button class="archive-timeline-btn" onclick="archiveTimeline()">
+                    <i class="fa-solid fa-folder-minus"></i><i class="fa-solid fa-arrow-left"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="theme-switch">
+        <div class="theme-dot dot-1" onclick="switchTheme('default')"></div>
+        <div class="theme-dot dot-2" onclick="switchTheme('theme-vintage')"></div>
+        <div class="theme-dot dot-3" onclick="switchTheme('theme-blue')"></div>
+    </div>
+</div>
+
+<script>
+    let notes = []; 
+    let archived = []; 
+    let currentActiveNoteId = null;
+
+    // ================= 本地数据缓存逻辑 =================
+    function loadData() {
+        const savedNotes = localStorage.getItem('lastBookNotes');
+        const savedArchived = localStorage.getItem('lastBookArchived');
+        const savedTheme = localStorage.getItem('lastBookTheme');
+
+        if (savedNotes) {
+            notes = JSON.parse(savedNotes);
+            // 修复意外中断导致的加载状态锁死
+            notes.forEach(n => n.isLoading = false);
+        }
+        if (savedArchived) archived = JSON.parse(savedArchived);
+        if (savedTheme) switchTheme(savedTheme); else switchTheme('default');
+        
+        renderNotes();
+        renderArchive();
+    }
+
+    function saveData() {
+        localStorage.setItem('lastBookNotes', JSON.stringify(notes));
+        localStorage.setItem('lastBookArchived', JSON.stringify(archived));
+    }
+
+    // ================= AI 模拟区域 =================
+    async function simulateAISummary(text) { return new Promise(resolve => { setTimeout(() => { resolve("✨ " + (text.length > 20 ? text.substring(0, 20) + "..." : text)); }, 1000); }); }
+    async function simulateAIAnalysis(text) { return new Promise(resolve => { setTimeout(() => { resolve({ premise: "AI推测前提: 优化流程需要时间。", blocker: "AI推测卡点: 缺乏执行标准。" }); }, 800); }); }
+
+    // ================= 工具与交互 =================
+    function autoResize(textarea) { textarea.style.height = 'auto'; textarea.style.height = textarea.scrollHeight + 'px'; }
+
+    document.getElementById('main-input').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addNote(); }
+    });
+
+    async function addNote() {
+        const input = document.getElementById('main-input');
+        const text = input.value.trim();
+        if (!text) return;
+        input.value = ''; input.style.height = 'auto';
+
+        const tempId = 'note_' + Date.now();
+        notes.unshift({ id: tempId, original: text, summary: '思考中...', isLoading: true, time: new Date().toLocaleString(), contentHTML: '', history: [] }); 
+        renderNotes();
+        saveData(); // 保存初始状态
+
+        const summary = await simulateAISummary(text);
+        const analysis = await simulateAIAnalysis(text);
+
+        const index = notes.findIndex(n => n.id === tempId);
+        if (index !== -1) {
+            notes[index] = { ...notes[index], summary: summary, isLoading: false, currentPremise: analysis.premise, currentBlocker: analysis.blocker };
+            renderNotes();
+            saveData(); // AI生成后保存
+        }
+    }
+
+    function updateInlineNote(id, el) {
+        const newText = el.innerText.trim();
+        const note = notes.find(n => n.id === id);
+        if (note && newText !== '') {
+            note.summary = newText;
+            saveData(); // 编辑后保存
+        } else if (newText === '') {
+            el.innerText = note.summary; 
+        }
+    }
+    function handleInlineKeydown(e, el) { if (e.key === 'Enter') { e.preventDefault(); el.blur(); } }
+
+    function renderNotes() {
+        const container = document.getElementById('notes-container');
+        container.innerHTML = '';
+        notes.forEach(note => {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'note-wrapper';
+            wrapper.dataset.id = note.id;
+            wrapper.innerHTML = `
+                <div class="note-item" id="${note.id}">
+                    <div class="note-single-text ${note.isLoading ? 'loading-text' : ''}" 
+                         contenteditable="${!note.isLoading}" 
+                         onblur="updateInlineNote('${note.id}', this)"
+                         onkeydown="handleInlineKeydown(event, this)">
+                         ${note.summary}
+                    </div>
+                </div>
+            `;
+            container.appendChild(wrapper);
+            if(!note.isLoading) bindSwipeEvents(document.getElementById(note.id));
+        });
+    }
+
+    function renderArchive() {
+        const container = document.getElementById('archive-container');
+        container.innerHTML = '';
+        archived.forEach(note => {
+            const div = document.createElement('div');
+            div.className = 'note-item';
+            div.style.padding = '0'; div.style.marginBottom = '15px'; div.style.opacity = '0.8';
+            div.innerHTML = `
+                <div class="archive-item-layout">
+                    <div class="archive-delete-btn" onclick="deleteFromArchive('${note.id}', event)"><i class="fa-solid fa-xmark"></i></div>
+                    <div class="archive-text-area" onclick="openDetail('${note.id}')">已收纳: ${note.summary}</div>
+                </div>
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    function deleteFromArchive(id, e) {
+        e.stopPropagation();
+        const index = archived.findIndex(n => n.id === id);
+        if (index > -1) {
+            archived.splice(index, 1);
+            renderArchive();
+            saveData(); // 删除后保存
+        }
+    }
+
+    function bindSwipeEvents(element) {
+        let startX = 0, startY = 0, currentX = 0;
+        let isSwiping = false, isVertical = false;
+        const wrapper = element.parentElement;
+        
+        element.addEventListener('pointerdown', (e) => {
+            if (e.target.hasAttribute('contenteditable') && e.target.getAttribute('contenteditable') === 'true') return;
+            if (wrapper.classList.contains('note-chosen')) return; 
+            startX = e.clientX; startY = e.clientY; currentX = 0; isSwiping = false; isVertical = false;
+            element.style.transition = 'none'; element.setPointerCapture(e.pointerId);
+        });
+
+        element.addEventListener('pointermove', (e) => {
+            if (isVertical || wrapper.classList.contains('note-chosen')) return;
+            if (!element.hasPointerCapture(e.pointerId)) return;
+            let deltaX = e.clientX - startX; let deltaY = e.clientY - startY;
+            if (!isSwiping) {
+                if (Math.abs(deltaX) > 10 && Math.abs(deltaX) > Math.abs(deltaY)) isSwiping = true; 
+                else if (Math.abs(deltaY) > 10) { isVertical = true; return; }
+            }
+            if (isSwiping) {
+                currentX = deltaX;
+                if (currentX > 150) currentX = 150 + (currentX - 150) * 0.2; 
+                if (currentX < -150) currentX = -150 + (currentX + 150) * 0.2;
+                element.style.transform = `translateX(${currentX}px)`;
+                if (currentX < 0) {
+                    let intensity = Math.min(Math.abs(currentX) / 100, 1);
+                    wrapper.style.backgroundColor = `rgba(92, 184, 92, ${intensity * 0.8})`; 
+                } else if (currentX > 0) {
+                    let intensity = Math.min(currentX / 100, 1);
+                    wrapper.style.backgroundColor = `rgba(91, 192, 222, ${intensity * 0.8})`; 
+                }
+            }
+        });
+
+        const releaseSwipe = (e) => {
+            if (element.hasPointerCapture(e.pointerId)) element.releasePointerCapture(e.pointerId);
+            if (isSwiping) {
+                element.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)';
+                const threshold = 70; 
+                if (currentX > threshold) {
+                    element.style.transform = `translateX(100%)`;
+                    setTimeout(() => { element.style.transform = `translateX(0)`; wrapper.style.backgroundColor = 'var(--track-bg)'; openDetail(wrapper.dataset.id); }, 300);
+                } else if (currentX < -threshold) {
+                    element.style.transform = `translateX(-100%)`;
+                    setTimeout(() => { wrapper.style.backgroundColor = 'var(--track-bg)'; moveToArchive(wrapper.dataset.id); }, 300);
+                } else {
+                    element.style.transform = `translateX(0)`; wrapper.style.backgroundColor = 'var(--track-bg)';
+                }
+            }
+            isSwiping = false; isVertical = false;
+        };
+        element.addEventListener('pointerup', releaseSwipe); element.addEventListener('pointercancel', releaseSwipe);
+    }
+
+    function moveToArchive(id) {
+        const index = notes.findIndex(n => n.id === id);
+        if (index > -1) {
+            archived.unshift(notes[index]);
+            notes.splice(index, 1);
+            renderNotes();
+            renderArchive();
+            saveData(); // 归档后保存
+        }
+    }
+
+    function openArchive() { document.getElementById('archive-view').classList.add('active'); renderArchive(); }
+    function closeArchive() { document.getElementById('archive-view').classList.remove('active'); }
+
+    function openDetail(id) {
+        currentActiveNoteId = id;
+        let note = notes.find(n => n.id === id) || archived.find(n => n.id === id);
+        if (!note) return;
+        document.getElementById('detail-view').classList.add('active');
+        const editor = document.getElementById('detail-editor');
+        editor.innerHTML = note.contentHTML || note.original;
+        checkEditorEmpty(editor);
+        document.getElementById('dt-time').value = new Date().toLocaleString();
+        document.getElementById('dt-premise').value = note.currentPremise || "";
+        document.getElementById('dt-blocker').value = note.currentBlocker || "";
+        autoResize(document.getElementById('dt-premise')); autoResize(document.getElementById('dt-blocker'));
+        renderHistory(note.history);
+    }
+
+    function closeDetail() {
+        if (currentActiveNoteId) {
+            let note = notes.find(n => n.id === currentActiveNoteId) || archived.find(n => n.id === currentActiveNoteId);
+            if (note) {
+                note.contentHTML = document.getElementById('detail-editor').innerHTML;
+                note.currentPremise = document.getElementById('dt-premise').value;
+                note.currentBlocker = document.getElementById('dt-blocker').value;
+                saveData(); // 从详情页返回时保存数据
+            }
+        }
+        document.getElementById('detail-view').classList.remove('active');
+        currentActiveNoteId = null;
+    }
+
+    function checkEditorEmpty(el) { el.dataset.empty = (el.innerHTML.trim() === "" || el.innerHTML === "<br>") ? "true" : "false"; }
+
+    async function archiveTimeline() {
+        if (!currentActiveNoteId) return;
+        let note = notes.find(n => n.id === currentActiveNoteId) || archived.find(n => n.id === currentActiveNoteId);
+        const timeBox = document.getElementById('dt-time'), premiseBox = document.getElementById('dt-premise'), blockerBox = document.getElementById('dt-blocker'), container = document.getElementById('current-timeline-box');
+
+        note.history.unshift({ time: timeBox.value, premise: premiseBox.value, blocker: blockerBox.value });
+        saveData(); // 保存历史记录
+
+        container.style.transition = 'all 0.4s ease'; container.classList.add('fold-left-anim');
+        setTimeout(async () => {
+            renderHistory(note.history); 
+            container.classList.remove('fold-left-anim');
+            timeBox.value = new Date().toLocaleString(); premiseBox.value = "AI生成中..."; blockerBox.value = "AI生成中...";
+            const analysis = await simulateAIAnalysis("继续跟进...");
+            premiseBox.value = analysis.premise; blockerBox.value = analysis.blocker;
+            autoResize(premiseBox); autoResize(blockerBox);
+            // 自动把新生成的AI预测也存下来
+            note.currentPremise = analysis.premise;
+            note.currentBlocker = analysis.blocker;
+            saveData();
+        }, 400);
+    }
+
+    function renderHistory(historyArr) {
+        const hContainer = document.getElementById('timeline-history');
+        hContainer.innerHTML = '';
+        historyArr.forEach(h => {
+            const div = document.createElement('div');
+            div.className = 'history-card';
+            div.innerHTML = `<strong>${h.time}</strong><br><span style="opacity:0.8">前提:</span> ${h.premise}<br><span style="opacity:0.8; color: var(--danger-color)">卡点:</span> ${h.blocker}`;
+            hContainer.appendChild(div);
+        });
+    }
+
+    function initSortable() {
+        new Sortable(document.getElementById('notes-container'), {
+            animation: 200, delay: 300, delayOnTouchOnly: false, chosenClass: 'note-chosen', ghostClass: 'note-ghost',
+            filter: '[contenteditable="true"]', preventOnFilter: false,
+            onEnd: function (evt) { 
+                const movedItem = notes.splice(evt.oldIndex, 1)[0]; 
+                notes.splice(evt.newIndex, 0, movedItem); 
+                saveData(); // 拖拽排序后保存顺序
+            }
+        });
+    }
+
+    function switchTheme(themeClass) {
+        document.body.className = themeClass;
+        document.querySelectorAll('.dynamic-border').forEach(el => themeClass === 'theme-vintage' ? el.classList.add('vintage-border') : el.classList.remove('vintage-border'));
+        localStorage.setItem('lastBookTheme', themeClass); // 记住主题偏好
+    }
+
+    window.onload = () => { 
+        loadData(); // 加载本地缓存数据
+        initSortable(); 
+    }
+
+</script>
+</body>
+</html>
