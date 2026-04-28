@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<link rel="manifest" href="manifest.json">
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- 优化：加入 interactive-widget=resizes-content 确保键盘弹出时重绘视口，不遮挡输入框 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content">
     <title>The Last Book - Minimal Note</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Playfair+Display:wght@400;700&family=Zilla+Slab:wght@400;600&display=swap" rel="stylesheet">
@@ -34,7 +34,10 @@
 
         /* ================= 全局样式 ================= */
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent;}
-        body { background-color: var(--bg-color); color: var(--text-color); font-family: var(--font-main); height: 100vh; overflow: hidden; transition: background-color 0.5s ease; }
+        
+        /* 优化：加入 height: 100dvh 适配现代手机浏览器动态视口 */
+        body { background-color: var(--bg-color); color: var(--text-color); font-family: var(--font-main); height: 100vh; height: 100dvh; overflow: hidden; transition: background-color 0.5s ease; }
+        
         input, textarea, [contenteditable] { user-select: text; font-family: inherit; }
         
         #app { width: 100%; height: 100%; position: relative; max-width: 600px; margin: 0 auto; background: var(--bg-color); box-shadow: 0 0 20px rgba(0,0,0,0.1); overflow: hidden; display: flex; flex-direction: column;}
@@ -51,7 +54,8 @@
         .note-chosen .note-item { transform: scale(1.03) !important; box-shadow: 0 12px 24px rgba(0,0,0,0.2) !important; border-color: var(--accent-color); transition: transform 0.2s ease, box-shadow 0.2s ease; }
         .note-ghost { opacity: 0; }
         .note-single-text { font-size: 16px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; text-align: center; padding: 5px 10px; border-radius: 4px; outline: none; transition: background 0.2s; }
-        .note-single-text[contenteditable="true"]:focus { background: rgba(255, 255, 255, 0.4); border: 1px dashed rgba(0,0,0,0.2); cursor: text; }
+        .note-single-text[contenteditable="true"] { cursor: text; }
+        .note-single-text[contenteditable="true"]:focus { background: rgba(255, 255, 255, 0.4); border: 1px dashed rgba(0,0,0,0.2); }
 
         #input-area { padding: 15px 20px; background: rgba(0,0,0,0.05); flex-shrink: 0; display: flex; align-items: flex-end; gap: 10px; padding-bottom: max(15px, env(safe-area-inset-bottom)); }
         #main-input { flex: 1; background: var(--item-bg); border: var(--border-style); border-radius: 20px; padding: 12px 15px; font-size: 16px; outline: none; color: var(--text-color); resize: none; min-height: 44px; max-height: 120px; overflow-y: auto;}
@@ -162,7 +166,6 @@
 
         if (savedNotes) {
             notes = JSON.parse(savedNotes);
-            // 修复意外中断导致的加载状态锁死
             notes.forEach(n => n.isLoading = false);
         }
         if (savedArchived) archived = JSON.parse(savedArchived);
@@ -197,7 +200,7 @@
         const tempId = 'note_' + Date.now();
         notes.unshift({ id: tempId, original: text, summary: '思考中...', isLoading: true, time: new Date().toLocaleString(), contentHTML: '', history: [] }); 
         renderNotes();
-        saveData(); // 保存初始状态
+        saveData(); 
 
         const summary = await simulateAISummary(text);
         const analysis = await simulateAIAnalysis(text);
@@ -206,7 +209,7 @@
         if (index !== -1) {
             notes[index] = { ...notes[index], summary: summary, isLoading: false, currentPremise: analysis.premise, currentBlocker: analysis.blocker };
             renderNotes();
-            saveData(); // AI生成后保存
+            saveData(); 
         }
     }
 
@@ -215,11 +218,18 @@
         const note = notes.find(n => n.id === id);
         if (note && newText !== '') {
             note.summary = newText;
-            saveData(); // 编辑后保存
+            saveData(); 
         } else if (newText === '') {
             el.innerText = note.summary; 
         }
     }
+    
+    // 优化：完成编辑后收起状态并保存
+    function endInlineEdit(id, el) {
+        el.setAttribute('contenteditable', 'false');
+        updateInlineNote(id, el);
+    }
+    
     function handleInlineKeydown(e, el) { if (e.key === 'Enter') { e.preventDefault(); el.blur(); } }
 
     function renderNotes() {
@@ -229,11 +239,13 @@
             const wrapper = document.createElement('div');
             wrapper.className = 'note-wrapper';
             wrapper.dataset.id = note.id;
+            
+            // 优化：默认 contenteditable 为 false，只有触发双击逻辑时才开启
             wrapper.innerHTML = `
                 <div class="note-item" id="${note.id}">
                     <div class="note-single-text ${note.isLoading ? 'loading-text' : ''}" 
-                         contenteditable="${!note.isLoading}" 
-                         onblur="updateInlineNote('${note.id}', this)"
+                         contenteditable="false" 
+                         onblur="endInlineEdit('${note.id}', this)"
                          onkeydown="handleInlineKeydown(event, this)">
                          ${note.summary}
                     </div>
@@ -267,25 +279,33 @@
         if (index > -1) {
             archived.splice(index, 1);
             renderArchive();
-            saveData(); // 删除后保存
+            saveData(); 
         }
     }
 
     function bindSwipeEvents(element) {
         let startX = 0, startY = 0, currentX = 0;
         let isSwiping = false, isVertical = false;
+        let lastTapTime = 0; // 用于记录双击的变量
+        
         const wrapper = element.parentElement;
+        const textNode = element.querySelector('.note-single-text');
         
         element.addEventListener('pointerdown', (e) => {
-            if (e.target.hasAttribute('contenteditable') && e.target.getAttribute('contenteditable') === 'true') return;
+            // 如果已经在编辑模式中，允许内部文本的拖拽/选择，不触发外层滑动
+            if (textNode && textNode.getAttribute('contenteditable') === 'true') return;
             if (wrapper.classList.contains('note-chosen')) return; 
+            
             startX = e.clientX; startY = e.clientY; currentX = 0; isSwiping = false; isVertical = false;
-            element.style.transition = 'none'; element.setPointerCapture(e.pointerId);
+            element.style.transition = 'none'; 
+            element.setPointerCapture(e.pointerId);
         });
 
         element.addEventListener('pointermove', (e) => {
+            if (textNode && textNode.getAttribute('contenteditable') === 'true') return;
             if (isVertical || wrapper.classList.contains('note-chosen')) return;
             if (!element.hasPointerCapture(e.pointerId)) return;
+            
             let deltaX = e.clientX - startX; let deltaY = e.clientY - startY;
             if (!isSwiping) {
                 if (Math.abs(deltaX) > 10 && Math.abs(deltaX) > Math.abs(deltaY)) isSwiping = true; 
@@ -307,7 +327,32 @@
         });
 
         const releaseSwipe = (e) => {
+            if (textNode && textNode.getAttribute('contenteditable') === 'true') return;
+
             if (element.hasPointerCapture(e.pointerId)) element.releasePointerCapture(e.pointerId);
+            
+            // ======== 优化：自定义双击(双击时间差<300ms)逻辑，避免影响滑动体验 ========
+            if (!isSwiping && !isVertical) {
+                const currentTime = new Date().getTime();
+                const tapLength = currentTime - lastTapTime;
+                if (tapLength < 300 && tapLength > 0) {
+                    if (textNode && !textNode.classList.contains('loading-text')) {
+                        textNode.setAttribute('contenteditable', 'true');
+                        textNode.focus();
+                        // 自动将光标移至末尾
+                        const selection = window.getSelection();
+                        const range = document.createRange();
+                        range.selectNodeContents(textNode);
+                        range.collapse(false);
+                        selection.removeAllRanges();
+                        selection.addRange(range);
+                    }
+                    e.preventDefault(); 
+                }
+                lastTapTime = currentTime;
+            }
+            // ======================================================================
+
             if (isSwiping) {
                 element.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)';
                 const threshold = 70; 
@@ -333,7 +378,7 @@
             notes.splice(index, 1);
             renderNotes();
             renderArchive();
-            saveData(); // 归档后保存
+            saveData(); 
         }
     }
 
@@ -362,7 +407,7 @@
                 note.contentHTML = document.getElementById('detail-editor').innerHTML;
                 note.currentPremise = document.getElementById('dt-premise').value;
                 note.currentBlocker = document.getElementById('dt-blocker').value;
-                saveData(); // 从详情页返回时保存数据
+                saveData(); 
             }
         }
         document.getElementById('detail-view').classList.remove('active');
@@ -377,7 +422,7 @@
         const timeBox = document.getElementById('dt-time'), premiseBox = document.getElementById('dt-premise'), blockerBox = document.getElementById('dt-blocker'), container = document.getElementById('current-timeline-box');
 
         note.history.unshift({ time: timeBox.value, premise: premiseBox.value, blocker: blockerBox.value });
-        saveData(); // 保存历史记录
+        saveData(); 
 
         container.style.transition = 'all 0.4s ease'; container.classList.add('fold-left-anim');
         setTimeout(async () => {
@@ -387,7 +432,6 @@
             const analysis = await simulateAIAnalysis("继续跟进...");
             premiseBox.value = analysis.premise; blockerBox.value = analysis.blocker;
             autoResize(premiseBox); autoResize(blockerBox);
-            // 自动把新生成的AI预测也存下来
             note.currentPremise = analysis.premise;
             note.currentBlocker = analysis.blocker;
             saveData();
@@ -412,7 +456,7 @@
             onEnd: function (evt) { 
                 const movedItem = notes.splice(evt.oldIndex, 1)[0]; 
                 notes.splice(evt.newIndex, 0, movedItem); 
-                saveData(); // 拖拽排序后保存顺序
+                saveData(); 
             }
         });
     }
@@ -420,11 +464,11 @@
     function switchTheme(themeClass) {
         document.body.className = themeClass;
         document.querySelectorAll('.dynamic-border').forEach(el => themeClass === 'theme-vintage' ? el.classList.add('vintage-border') : el.classList.remove('vintage-border'));
-        localStorage.setItem('lastBookTheme', themeClass); // 记住主题偏好
+        localStorage.setItem('lastBookTheme', themeClass); 
     }
 
     window.onload = () => { 
-        loadData(); // 加载本地缓存数据
+        loadData(); 
         initSortable(); 
     }
 
