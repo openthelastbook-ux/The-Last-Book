@@ -5,12 +5,6 @@
     <!-- 优化：加入 interactive-widget=resizes-content 确保键盘弹出时重绘视口，不遮挡输入框 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content">
     <title>The Last Book - Minimal Note</title>
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#8da48d">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="LastBook">
-    <link rel="apple-touch-icon" href="/icon-192.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Playfair+Display:wght@400;700&family=Zilla+Slab:wght@400;600&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
@@ -188,7 +182,7 @@
 
     // ================= AI 模拟区域 =================
     async function simulateAISummary(text) { return new Promise(resolve => { setTimeout(() => { resolve("✨ " + (text.length > 20 ? text.substring(0, 20) + "..." : text)); }, 1000); }); }
-    async function simulateAIAnalysis(text) { return new Promise(resolve => { setTimeout(() => { resolve({ premise: "AI推测前提: 优化流程需要时间。", blocker: "AI推测卡点: 缺乏执行标准。" }); }, 800); }); }
+    async function simulateAIAnalysis(text) { return new Promise(resolve => { setTimeout(() => { resolve({ premise: "🚶", blocker: "🌟" }); }, 800); }); }
 
     // ================= 工具与交互 =================
     function autoResize(textarea) { textarea.style.height = 'auto'; textarea.style.height = textarea.scrollHeight + 'px'; }
@@ -473,9 +467,7 @@
         localStorage.setItem('lastBookTheme', themeClass); 
     }
 
-    window.onload = () => {
-        if ("serviceWorker" in navigator) { navigator.serviceWorker.register("/sw.js"); }
-        
+    window.onload = () => { 
         loadData(); 
         initSortable(); 
     }
