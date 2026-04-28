@@ -5,6 +5,12 @@
     <!-- 优化：加入 interactive-widget=resizes-content 确保键盘弹出时重绘视口，不遮挡输入框 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content">
     <title>The Last Book - Minimal Note</title>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#8da48d">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="LastBook">
+    <link rel="apple-touch-icon" href="/icon-192.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Playfair+Display:wght@400;700&family=Zilla+Slab:wght@400;600&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
@@ -467,7 +473,9 @@
         localStorage.setItem('lastBookTheme', themeClass); 
     }
 
-    window.onload = () => { 
+    window.onload = () => {
+        if ("serviceWorker" in navigator) { navigator.serviceWorker.register("/sw.js"); }
+        
         loadData(); 
         initSortable(); 
     }
