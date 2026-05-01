@@ -2,7 +2,13 @@ const CACHE_NAME = 'lastbook-v1';
 const urlsToCache = [
   '/',
   '/index.html',
-  '/manifest.json'
+  '/manifest.json',
+  '/launchericon-48x48.png',
+  '/launchericon-72x72.png',
+  '/launchericon-96x96.png',
+  '/launchericon-144x144.png',
+  '/launchericon-192x192.png',
+  '/launchericon-512x512.png'
 ];
 
 self.addEventListener('install', event => {
