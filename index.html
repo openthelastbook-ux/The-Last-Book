@@ -85,8 +85,9 @@
         #detail-bottom-panel { flex-shrink: 0; background: rgba(255,255,255,0.1); border-top: var(--border-style); padding: 15px 20px; padding-bottom: max(15px, env(safe-area-inset-bottom)); display: flex; gap: 10px;}
         .timeline-container { flex: 1; display: flex; flex-direction: column; gap: 8px; position: relative;}
         .row-item { display: flex; align-items: flex-start; gap: 10px; background: var(--item-bg); padding: 10px; border-radius: 5px; border: var(--border-style); transition: all 0.3s ease;}
-        .row-label { font-size: 12px; opacity: 0.7; width: 40px; margin-top: 2px; white-space: nowrap;}
+        .row-label { font-size: 12px; opacity: 0.7; width: 44px; margin-top: 2px; white-space: nowrap;}
         .row-input { flex: 1; background: transparent; border: none; outline: none; color: var(--text-color); font-size: 14px; resize: none; overflow: hidden; display: block;}
+        .row-input::placeholder { opacity: 0.5; }
         .fold-left-anim { transform: translateX(-100%) scale(0.5); opacity: 0; pointer-events: none; position: absolute; }
         .folder-action { width: 40px; display: flex; flex-direction: column; justify-content: center; align-items: center;}
         .archive-timeline-btn { background: var(--accent-color); color: var(--bg-color); border: none; width: 40px; height: 100%; border-radius: 5px; cursor: pointer; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 5px;}
@@ -134,8 +135,8 @@
         <div id="detail-bottom-panel">
             <div class="timeline-container" id="current-timeline-box">
                 <div class="row-item"><span class="row-label">时间</span><input type="text" class="row-input" id="dt-time" readonly></div>
-                <div class="row-item"><span class="row-label">【前提】🚶‍♀️</span><textarea class="row-input" id="dt-premise" rows="1" oninput="autoResize(this)"></textarea></div>
-                <div class="row-item"><span class="row-label">【验证】☝️</span><textarea class="row-input" id="dt-blocker" rows="1" oninput="autoResize(this)"></textarea></div>
+                <div class="row-item"><span class="row-label">【前提】</span><textarea class="row-input" id="dt-premise" rows="1" oninput="autoResize(this)" placeholder="🚶‍♀️"></textarea></div>
+                <div class="row-item"><span class="row-label">【验证】</span><textarea class="row-input" id="dt-blocker" rows="1" oninput="autoResize(this)" placeholder="☝️"></textarea></div>
             </div>
             <div class="folder-action">
                 <button class="archive-timeline-btn" onclick="archiveTimeline()">
@@ -449,7 +450,7 @@ async function simulateAIAnalysis(text) { return new Promise(resolve => { setTim
         historyArr.forEach(h => {
             const div = document.createElement('div');
             div.className = 'history-card';
-            div.innerHTML = `<strong>${h.time}</strong><br><span style="opacity:0.8">【前提】🚶‍♀️:</span> ${h.premise}<br><span style="opacity:0.8; color: var(--danger-color)">【验证】☝️:</span> ${h.blocker}`;
+            div.innerHTML = `<strong>${h.time}</strong><br><span style="opacity:0.8">【前提】</span> ${h.premise}<br><span style="opacity:0.8; color: var(--danger-color)">【验证】</span> ${h.blocker}`;
             hContainer.appendChild(div);
         });
     }
