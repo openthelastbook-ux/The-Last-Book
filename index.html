@@ -68,7 +68,7 @@
         .archive-delete-btn { color: var(--danger-color); font-size: 24px; padding: 15px 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; border-right: 1px dashed rgba(0,0,0,0.1); }
         .archive-delete-btn:active { opacity: 0.5; }
         .archive-text-area { flex: 1; padding: 20px; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 14px; }
-        .archive-restore-btn { font-size: 28px; padding: 15px 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; border-left: 1px dashed rgba(0,0,0,0.1); transition: transform 0.2s; }
+.archive-restore-btn { font-size: 28px; padding: 15px 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; border-left: 1px dashed rgba(0,0,0,0.1); transition: transform 0.2s; }
         .archive-restore-btn:active { transform: scale(1.2); }
 
         /* ================= 详情视图 ================= */
@@ -184,7 +184,7 @@
 
     // ================= AI 模拟区域 =================
     async function simulateAISummary(text) { return new Promise(resolve => { setTimeout(() => { resolve("✨ " + (text.length > 20 ? text.substring(0, 20) + "..." : text)); }, 1000); }); }
-    async function simulateAIAnalysis(text) { return new Promise(resolve => { setTimeout(() => { resolve({ premise: "AI推测前提: 优化流程需要时间。", blocker: "AI推测卡点: 缺乏执行标准。" }); }, 800); }); }
+async function simulateAIAnalysis(text) { return new Promise(resolve => { setTimeout(() => { resolve({ premise: "AI推测前提: 优化流程需要时间。", blocker: "AI推测卡点: 缺乏执行标准。" }); }, 800); }); }
 
     // ================= 工具与交互 =================
     function autoResize(textarea) { textarea.style.height = 'auto'; textarea.style.height = textarea.scrollHeight + 'px'; }
