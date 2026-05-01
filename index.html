@@ -99,7 +99,7 @@
         @keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
     </style>
     <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#8ba285">
+    <meta name="theme-color" content="#8da48d" id="meta-theme-color">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Last Book">
@@ -479,9 +479,11 @@ async function simulateAIAnalysis(text) { return new Promise(resolve => { setTim
     const THEMES = ['default', 'theme-vintage', 'theme-blue'];
     let themeIndex = 0;
 
+    const themeColors = { 'default': '#8da48d', 'theme-vintage': '#fdf5e6', 'theme-blue': '#c0d6eb' };
     function switchTheme(themeClass) {
         document.body.className = themeClass;
         document.querySelectorAll('.dynamic-border').forEach(el => themeClass === 'theme-vintage' ? el.classList.add('vintage-border') : el.classList.remove('vintage-border'));
+        document.getElementById('meta-theme-color').content = themeColors[themeClass] || '#8da48d';
         localStorage.setItem('lastBookTheme', themeClass);
         themeIndex = THEMES.indexOf(themeClass);
     }
