@@ -43,6 +43,12 @@
         #app { width: 100%; height: 100%; position: relative; max-width: 600px; margin: 0 auto; background: var(--bg-color); box-shadow: 0 0 20px rgba(0,0,0,0.1); overflow: hidden; display: flex; flex-direction: column;}
         .header { padding: 20px; text-align: center; font-size: 24px; font-weight: bold; letter-spacing: 2px; flex-shrink: 0; display: flex; justify-content: space-between; align-items: center;}
         .header.vintage-border { border: var(--border-style); margin: 10px; padding: 15px; border-radius: 5px;}
+        .header-theme-switch { display: flex; gap: 4px; align-items: center;}
+        .h-dot { width: 14px; height: 14px; border-radius: 50%; cursor: pointer; border: 1.5px solid rgba(255,255,255,0.7); box-shadow: 0 1px 3px rgba(0,0,0,0.15); transition: transform 0.2s;}
+        .h-dot:active { transform: scale(1.2); }
+        .dot-1 { background: #8da48d; }
+        .dot-2 { background: #fdf5e6; border-color: #ccc; }
+        .dot-3 { background: #c0d6eb; }
         
         /* ================= 主列表视图 ================= */
         #list-view { display: flex; flex-direction: column; height: 100%; width: 100%; transition: transform 0.3s ease; }
@@ -102,7 +108,11 @@
         <div class="header dynamic-border">
             <i class="fa-solid fa-box-archive" onclick="openArchive()" style="cursor:pointer; font-size: 20px;"></i>
             <span>THE LAST BOOK</span>
-            <i class="fa-solid fa-pen-nib" style="opacity: 0;"></i>
+            <div class="header-theme-switch">
+                <div class="h-dot dot-1" onclick="switchTheme('default')"></div>
+                <div class="h-dot dot-2" onclick="switchTheme('theme-vintage')"></div>
+                <div class="h-dot dot-3" onclick="switchTheme('theme-blue')"></div>
+            </div>
         </div>
         <div id="notes-container"></div>
         <div id="input-area">
