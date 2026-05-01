@@ -137,8 +137,8 @@
         <div id="detail-bottom-panel">
             <div class="timeline-container" id="current-timeline-box">
                 <div class="row-item"><span class="row-label">时间</span><input type="text" class="row-input" id="dt-time" readonly></div>
-                <div class="row-item"><span class="row-label">前提</span><textarea class="row-input" id="dt-premise" rows="1" oninput="autoResize(this)"></textarea></div>
-                <div class="row-item"><span class="row-label">验证</span><textarea class="row-input" id="dt-blocker" rows="1" oninput="autoResize(this)"></textarea></div>
+                <div class="row-item"><span class="row-label">【前提】🚶‍♀️</span><textarea class="row-input" id="dt-premise" rows="1" oninput="autoResize(this)"></textarea></div>
+                <div class="row-item"><span class="row-label">【验证】☝️</span><textarea class="row-input" id="dt-blocker" rows="1" oninput="autoResize(this)"></textarea></div>
             </div>
             <div class="folder-action">
                 <button class="archive-timeline-btn" onclick="archiveTimeline()">
@@ -184,7 +184,7 @@
 
     // ================= AI 模拟区域 =================
     async function simulateAISummary(text) { return new Promise(resolve => { setTimeout(() => { resolve("✨ " + (text.length > 20 ? text.substring(0, 20) + "..." : text)); }, 1000); }); }
-async function simulateAIAnalysis(text) { return new Promise(resolve => { setTimeout(() => { resolve({ premise: "AI推测前提: 优化流程需要时间。", blocker: "AI推测卡点: 缺乏执行标准。" }); }, 800); }); }
+async function simulateAIAnalysis(text) { return new Promise(resolve => { setTimeout(() => { resolve({ premise: "", blocker: "" }); }, 800); }); }
 
     // ================= 工具与交互 =================
     function autoResize(textarea) { textarea.style.height = 'auto'; textarea.style.height = textarea.scrollHeight + 'px'; }
@@ -443,12 +443,10 @@ async function simulateAIAnalysis(text) { return new Promise(resolve => { setTim
         setTimeout(async () => {
             renderHistory(note.history); 
             container.classList.remove('fold-left-anim');
-            timeBox.value = new Date().toLocaleString(); premiseBox.value = "AI生成中..."; blockerBox.value = "AI生成中...";
-            const analysis = await simulateAIAnalysis("继续跟进...");
-            premiseBox.value = analysis.premise; blockerBox.value = analysis.blocker;
+            timeBox.value = new Date().toLocaleString(); premiseBox.value = ""; blockerBox.value = "";
             autoResize(premiseBox); autoResize(blockerBox);
-            note.currentPremise = analysis.premise;
-            note.currentBlocker = analysis.blocker;
+            note.currentPremise = "";
+            note.currentBlocker = "";
             saveData();
         }, 400);
     }
@@ -459,7 +457,7 @@ async function simulateAIAnalysis(text) { return new Promise(resolve => { setTim
         historyArr.forEach(h => {
             const div = document.createElement('div');
             div.className = 'history-card';
-            div.innerHTML = `<strong>${h.time}</strong><br><span style="opacity:0.8">前提:</span> ${h.premise}<br><span style="opacity:0.8; color: var(--danger-color)">卡点:</span> ${h.blocker}`;
+            div.innerHTML = `<strong>${h.time}</strong><br><span style="opacity:0.8">【前提】🚶‍♀️:</span> ${h.premise}<br><span style="opacity:0.8; color: var(--danger-color)">【验证】☝️:</span> ${h.blocker}`;
             hContainer.appendChild(div);
         });
     }
