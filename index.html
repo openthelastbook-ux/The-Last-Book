@@ -82,7 +82,7 @@
         #detail-bottom-panel { flex-shrink: 0; background: rgba(255,255,255,0.1); border-top: var(--border-style); padding: 15px 20px; padding-bottom: max(15px, env(safe-area-inset-bottom)); display: flex; gap: 10px;}
         .timeline-container { flex: 1; display: flex; flex-direction: column; gap: 8px; position: relative;}
         .row-item { display: flex; align-items: flex-start; gap: 10px; background: var(--item-bg); padding: 10px; border-radius: 5px; border: var(--border-style); transition: all 0.3s ease;}
-        .row-label { font-size: 12px; opacity: 0.7; width: 40px; margin-top: 2px;}
+        .row-label { font-size: 12px; opacity: 0.7; width: 40px; margin-top: 2px; white-space: nowrap;}
         .row-input { flex: 1; background: transparent; border: none; outline: none; color: var(--text-color); font-size: 14px; resize: none; overflow: hidden; display: block;}
         .fold-left-anim { transform: translateX(-100%) scale(0.5); opacity: 0; pointer-events: none; position: absolute; }
         .folder-action { width: 40px; display: flex; flex-direction: column; justify-content: center; align-items: center;}
@@ -91,12 +91,6 @@
         .history-card { font-size: 13px; background: rgba(0,0,0,0.03); padding: 12px 15px; border-radius: 8px; position: relative; margin-left: 8px; }
         .history-card::before { content: ''; position: absolute; left: -4px; top: 15%; height: 70%; width: 4px; background-color: var(--accent-color); border-radius: 4px; opacity: 0.85; box-shadow: 0 0 2px rgba(0,0,0,0.1); }
 
-        /* ================= 小工具 ================= */
-        .theme-switch { position: absolute; bottom: 80px; right: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 100;}
-        .theme-dot { width: 30px; height: 30px; border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.2);}
-        .dot-1 { background: #8da48d; }
-        .dot-2 { background: #fdf5e6; border-color: #ccc; }
-        .dot-3 { background: #c0d6eb; }
         .loading-text { font-style: italic; opacity: 0.6; font-size: 14px; animation: pulse 1.5s infinite; }
         @keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
     </style>
@@ -148,11 +142,6 @@
         </div>
     </div>
 
-    <div class="theme-switch">
-        <div class="theme-dot dot-1" onclick="switchTheme('default')"></div>
-        <div class="theme-dot dot-2" onclick="switchTheme('theme-vintage')"></div>
-        <div class="theme-dot dot-3" onclick="switchTheme('theme-blue')"></div>
-    </div>
 </div>
 
 <script>
