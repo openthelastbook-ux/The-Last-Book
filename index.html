@@ -98,6 +98,11 @@
         .loading-text { font-style: italic; opacity: 0.6; font-size: 14px; animation: pulse 1.5s infinite; }
         @keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
     </style>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#8ba285">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Last Book">
+    <link rel="apple-touch-icon" href="/launchericon-192x192.png">
 </head>
 <body>
 
@@ -482,7 +487,9 @@ async function simulateAIAnalysis(text) { return new Promise(resolve => { setTim
         switchTheme(THEMES[themeIndex]);
     }
 
-    window.onload = () => { 
+    window.onload = () => {
+        if ("serviceWorker" in navigator) { navigator.serviceWorker.register("/sw.js"); }
+        
         loadData(); 
         initSortable(); 
     }
