@@ -498,6 +498,21 @@ async function simulateAIAnalysis(text) { return new Promise(resolve => { setTim
         initSortable();
     }
 
+    // 捕获安装事件，用户下次点击时弹出原生安装框
+    let deferredPrompt = null;
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        // 用户任意点击就触发安装弹窗
+        document.addEventListener('click', triggerInstall, { once: true });
+    });
+    window.addEventListener('appinstalled', () => { deferredPrompt = null; });
+    function triggerInstall() {
+        if (!deferredPrompt) return;
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then(() => { deferredPrompt = null; });
+    }
+
 </script>
 </body>
 </html>
