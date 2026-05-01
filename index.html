@@ -91,6 +91,7 @@
         .fold-left-anim { transform: translateX(-100%) scale(0.5); opacity: 0; pointer-events: none; position: absolute; }
         .folder-action { width: 40px; display: flex; flex-direction: column; justify-content: center; align-items: center;}
         .archive-timeline-btn { background: var(--accent-color); color: var(--bg-color); border: none; width: 40px; height: 100%; border-radius: 5px; cursor: pointer; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 5px;}
+        #detail-img-btn { display: flex; align-items: center; justify-content: center; width: 40px; cursor: pointer; font-size: 18px; color: var(--text-color); opacity: 0.6; }
         #timeline-history { padding: 0 20px; max-height: 180px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; margin-bottom: 10px; border-bottom: 1px dashed rgba(0,0,0,0.2); padding-bottom: 15px;}
         .history-card { font-size: 13px; background: rgba(0,0,0,0.03); padding: 12px 15px; border-radius: 8px; position: relative; margin-left: 8px; }
         .history-card::before { content: ''; position: absolute; left: -4px; top: 15%; height: 70%; width: 4px; background-color: var(--accent-color); border-radius: 4px; opacity: 0.85; box-shadow: 0 0 2px rgba(0,0,0,0.1); }
@@ -144,13 +145,14 @@
         <div id="detail-bottom-panel">
             <div class="timeline-container" id="current-timeline-box">
                 <div class="row-item"><span class="row-label">时间</span><input type="text" class="row-input" id="dt-time" readonly></div>
-                <div class="row-item"><span class="row-label">【前提】</span><textarea class="row-input" id="dt-premise" rows="1" oninput="autoResize(this)" placeholder="🚶‍♀️"></textarea></div>
                 <div class="row-item"><span class="row-label">【验证】</span><textarea class="row-input" id="dt-blocker" rows="1" oninput="autoResize(this)" placeholder="☝️"></textarea></div>
             </div>
-            <div class="folder-action">
+            <div class="folder-action" style="display:flex;flex-direction:column;gap:6px;">
                 <button class="archive-timeline-btn" onclick="archiveTimeline()">
                     <i class="fa-solid fa-folder-minus"></i><i class="fa-solid fa-arrow-left"></i>
                 </button>
+                <i class="fa-solid fa-image" id="detail-img-btn" onclick="document.getElementById('detail-img-input').click()"></i>
+                <input type="file" id="detail-img-input" accept="image/*" style="display:none" onchange="insertImage(this)">
             </div>
         </div>
     </div>
@@ -186,7 +188,7 @@
 
     // ================= AI 模拟区域 =================
     async function simulateAISummary(text) { return new Promise(resolve => { setTimeout(() => { resolve("✨ " + (text.length > 20 ? text.substring(0, 20) + "..." : text)); }, 1000); }); }
-async function simulateAIAnalysis(text) { return new Promise(resolve => { setTimeout(() => { resolve({ premise: "", blocker: "" }); }, 800); }); }
+async function simulateAIAnalysis(text) { return new Promise(resolve => { setTimeout(() => { resolve({ blocker: "" }); }, 800); }); }
 
     // ================= 工具与交互 =================
     function autoResize(textarea) { textarea.style.height = 'auto'; textarea.style.height = textarea.scrollHeight + 'px'; }
@@ -202,7 +204,7 @@ async function simulateAIAnalysis(text) { return new Promise(resolve => { setTim
         input.value = ''; input.style.height = 'auto';
 
         const tempId = 'note_' + Date.now();
-        notes.unshift({ id: tempId, original: text, summary: '思考中...', isLoading: true, time: new Date().toLocaleString(), contentHTML: '', history: [] }); 
+        notes.unshift({ id: tempId, original: text, summary: '思考中...', isLoading: true, time: new Date().toLocaleString(), contentHTML: '', history: [] });
         renderNotes();
         saveData(); 
 
@@ -211,9 +213,9 @@ async function simulateAIAnalysis(text) { return new Promise(resolve => { setTim
 
         const index = notes.findIndex(n => n.id === tempId);
         if (index !== -1) {
-            notes[index] = { ...notes[index], summary: summary, isLoading: false, currentPremise: analysis.premise, currentBlocker: analysis.blocker };
+            notes[index] = { ...notes[index], summary: summary, isLoading: false, currentBlocker: analysis.blocker };
             renderNotes();
-            saveData(); 
+            saveData();
         }
     }
 
@@ -411,9 +413,8 @@ async function simulateAIAnalysis(text) { return new Promise(resolve => { setTim
         editor.innerHTML = note.contentHTML || note.original;
         checkEditorEmpty(editor);
         document.getElementById('dt-time').value = new Date().toLocaleString();
-        document.getElementById('dt-premise').value = note.currentPremise || "";
         document.getElementById('dt-blocker').value = note.currentBlocker || "";
-        autoResize(document.getElementById('dt-premise')); autoResize(document.getElementById('dt-blocker'));
+        autoResize(document.getElementById('dt-blocker'));
         renderHistory(note.history);
     }
 
@@ -422,9 +423,8 @@ async function simulateAIAnalysis(text) { return new Promise(resolve => { setTim
             let note = notes.find(n => n.id === currentActiveNoteId) || archived.find(n => n.id === currentActiveNoteId);
             if (note) {
                 note.contentHTML = document.getElementById('detail-editor').innerHTML;
-                note.currentPremise = document.getElementById('dt-premise').value;
                 note.currentBlocker = document.getElementById('dt-blocker').value;
-                saveData(); 
+                saveData();
             }
         }
         document.getElementById('detail-view').classList.remove('active');
@@ -433,21 +433,38 @@ async function simulateAIAnalysis(text) { return new Promise(resolve => { setTim
 
     function checkEditorEmpty(el) { el.dataset.empty = (el.innerHTML.trim() === "" || el.innerHTML === "<br>") ? "true" : "false"; }
 
+    function insertImage(input) {
+        const file = input.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const editor = document.getElementById('detail-editor');
+            const img = `<img src="${e.target.result}" onclick="this.remove()">`;
+            if (editor.innerHTML.trim() === '' || editor.innerHTML === '<br>') {
+                editor.innerHTML = img;
+            } else {
+                editor.innerHTML += img;
+            }
+            checkEditorEmpty(editor);
+        };
+        reader.readAsDataURL(file);
+        input.value = '';
+    }
+
     async function archiveTimeline() {
         if (!currentActiveNoteId) return;
         let note = notes.find(n => n.id === currentActiveNoteId) || archived.find(n => n.id === currentActiveNoteId);
-        const timeBox = document.getElementById('dt-time'), premiseBox = document.getElementById('dt-premise'), blockerBox = document.getElementById('dt-blocker'), container = document.getElementById('current-timeline-box');
+        const timeBox = document.getElementById('dt-time'), blockerBox = document.getElementById('dt-blocker'), container = document.getElementById('current-timeline-box');
 
-        note.history.unshift({ time: timeBox.value, premise: premiseBox.value, blocker: blockerBox.value });
-        saveData(); 
+        note.history.unshift({ time: timeBox.value, blocker: blockerBox.value });
+        saveData();
 
         container.style.transition = 'all 0.4s ease'; container.classList.add('fold-left-anim');
         setTimeout(async () => {
-            renderHistory(note.history); 
+            renderHistory(note.history);
             container.classList.remove('fold-left-anim');
-            timeBox.value = new Date().toLocaleString(); premiseBox.value = ""; blockerBox.value = "";
-            autoResize(premiseBox); autoResize(blockerBox);
-            note.currentPremise = "";
+            timeBox.value = new Date().toLocaleString(); blockerBox.value = "";
+            autoResize(blockerBox);
             note.currentBlocker = "";
             saveData();
         }, 400);
@@ -459,7 +476,7 @@ async function simulateAIAnalysis(text) { return new Promise(resolve => { setTim
         historyArr.forEach(h => {
             const div = document.createElement('div');
             div.className = 'history-card';
-            div.innerHTML = `<strong>${h.time}</strong><br><span style="opacity:0.8">【前提】</span> ${h.premise}<br><span style="opacity:0.8; color: var(--danger-color)">【验证】</span> ${h.blocker}`;
+            div.innerHTML = `<strong>${h.time}</strong><br><span style="opacity:0.8; color: var(--danger-color)">【验证】</span> ${h.blocker}`;
             hContainer.appendChild(div);
         });
     }
