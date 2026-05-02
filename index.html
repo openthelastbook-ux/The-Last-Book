@@ -80,8 +80,6 @@
         .detail-header { display: flex; align-items: center; padding: 20px; font-size: 18px; border-bottom: 1px solid rgba(0,0,0,0.1); }
         .back-btn { margin-right: 15px; cursor: pointer; font-size: 20px; padding: 10px;}
         #detail-editor { flex: 1; padding: 20px; overflow-y: auto; outline: none; line-height: 1.6; font-size: 16px;}
-        #detail-editor img { max-width: 100%; border-radius: 5px; margin: 10px 0; }
-        #detail-editor[data-empty="true"]::before { content: "在此处粘贴图片或补充详细文字..."; opacity: 0.5; }
         #detail-bottom-panel { flex-shrink: 0; background: rgba(255,255,255,0.1); border-top: var(--border-style); padding: 15px 20px; padding-bottom: max(15px, env(safe-area-inset-bottom)); display: flex; gap: 10px;}
         .timeline-container { flex: 1; display: flex; flex-direction: column; gap: 8px; position: relative;}
         .row-item { display: flex; align-items: flex-start; gap: 10px; background: var(--item-bg); padding: 10px; border-radius: 5px; border: var(--border-style); transition: all 0.3s ease;}
@@ -89,12 +87,18 @@
         .row-input { flex: 1; background: transparent; border: none; outline: none; color: var(--text-color); font-size: 14px; resize: none; overflow: hidden; display: block;}
         .row-input::placeholder { opacity: 0.5; }
         .fold-left-anim { transform: translateX(-100%) scale(0.5); opacity: 0; pointer-events: none; position: absolute; }
-        .folder-action { width: 40px; display: flex; flex-direction: column; justify-content: center; align-items: center;}
-        .archive-timeline-btn { background: var(--accent-color); color: var(--bg-color); border: none; width: 40px; height: 100%; border-radius: 5px; cursor: pointer; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 5px;}
-        #detail-img-btn { display: flex; align-items: center; justify-content: center; width: 40px; cursor: pointer; font-size: 18px; color: var(--text-color); opacity: 0.6; }
-        #timeline-history { padding: 0 20px; max-height: 180px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; margin-bottom: 10px; border-bottom: 1px dashed rgba(0,0,0,0.2); padding-bottom: 15px;}
-        .history-card { font-size: 13px; background: rgba(0,0,0,0.03); padding: 12px 15px; border-radius: 8px; position: relative; margin-left: 8px; }
-        .history-card::before { content: ''; position: absolute; left: -4px; top: 15%; height: 70%; width: 4px; background-color: var(--accent-color); border-radius: 4px; opacity: 0.85; box-shadow: 0 0 2px rgba(0,0,0,0.1); }
+        .folder-action { width: 40px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 6px; }
+        .archive-timeline-btn { background: var(--accent-color); color: var(--bg-color); border: none; width: 40px; flex: 1; border-radius: 5px; cursor: pointer; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 5px;}
+
+        #detail-editor img { width: 4.5em; height: 4.5em; object-fit: cover; border-radius: 5px; margin: 4px 3px; cursor: zoom-in; display: inline-block; vertical-align: top; box-shadow: 0 1px 4px rgba(0,0,0,0.15); transition: transform 0.15s; }
+        #detail-editor img:active { transform: scale(1.05); }
+        #detail-editor[data-empty="true"]::before { content: "在此处补充详细文字..."; opacity: 0.5; }
+
+        /* 图片全屏放大层 */
+        #img-lightbox { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.92); z-index:250; align-items:center; justify-content:center; }
+        #img-lightbox.open { display:flex; }
+        #img-lightbox img { max-width:92vw; max-height:88vh; border-radius:8px; object-fit:contain; }
+        #img-lightbox-close { position:absolute; top:16px; right:20px; color:#fff; font-size:30px; cursor:pointer; background:none; border:none; }
 
         .loading-text { font-style: italic; opacity: 0.6; font-size: 14px; animation: pulse 1.5s infinite; }
         @keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
@@ -138,9 +142,8 @@
         <div class="detail-header dynamic-border">
             <i class="fa-solid fa-chevron-left back-btn" onclick="closeDetail()"></i>
             <span style="flex:1; text-align: center; font-weight:bold;">详情 / Details</span>
-            <span style="width: 30px;"></span>
+            <i class="fa-solid fa-image" style="font-size:20px; cursor:pointer; padding:8px; opacity:0.7;" onclick="document.getElementById('detail-img-input').click()"></i>
         </div>
-        <div id="timeline-history"></div> 
         <div id="detail-editor" contenteditable="true" data-empty="true" oninput="checkEditorEmpty(this)"></div>
         <div id="detail-bottom-panel">
             <div class="timeline-container" id="current-timeline-box">
@@ -151,12 +154,40 @@
                 <button class="archive-timeline-btn" onclick="archiveTimeline()">
                     <i class="fa-solid fa-folder-minus"></i><i class="fa-solid fa-arrow-left"></i>
                 </button>
-                <i class="fa-solid fa-image" id="detail-img-btn" onclick="document.getElementById('detail-img-input').click()"></i>
-                <input type="file" id="detail-img-input" accept="image/*" style="display:none" onchange="insertImage(this)">
+                <button class="archive-timeline-btn" style="background:#b8211b;" onclick="openHistoryCarousel()">
+                    <i class="fa-solid fa-folder-open"></i>
+                </button>
             </div>
+            <input type="file" id="detail-img-input" accept="image/*" style="display:none" onchange="insertImage(this)">
         </div>
     </div>
 
+    <!-- 图片放大层 -->
+    <div id="img-lightbox" onclick="this.classList.remove('open')">
+        <button id="img-lightbox-close" onclick="document.getElementById('img-lightbox').classList.remove('open')"><i class="fa-solid fa-xmark"></i></button>
+        <img id="img-lightbox-img" src="" alt="">
+    </div>
+
+    <!-- 历史轮播全屏弹窗 -->
+    <div id="history-carousel" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.88); z-index:200; flex-direction:column; align-items:center; justify-content:center;">
+        <button onclick="closeHistoryCarousel()" style="position:absolute;top:18px;right:22px;background:none;border:none;color:#fff;font-size:28px;cursor:pointer;z-index:10;"><i class="fa-solid fa-xmark"></i></button>
+        <div id="carousel-inner" style="width:100%;max-width:480px;padding:0 30px;"></div>
+        <div style="display:flex;gap:18px;margin-top:22px;">
+            <button onclick="carouselPrev()" style="background:rgba(255,255,255,0.15);border:none;color:#fff;font-size:22px;padding:10px 18px;border-radius:50%;cursor:pointer;"><i class="fa-solid fa-chevron-left"></i></button>
+            <span id="carousel-counter" style="color:#fff;opacity:0.7;align-self:center;font-size:14px;"></span>
+            <button onclick="carouselNext()" style="background:rgba(255,255,255,0.15);border:none;color:#fff;font-size:22px;padding:10px 18px;border-radius:50%;cursor:pointer;"><i class="fa-solid fa-chevron-right"></i></button>
+        </div>
+    </div>
+
+    <!-- PWA 安装提示弹窗 -->
+    <div id="install-prompt" style="display:none; position:fixed; bottom:30px; left:50%; transform:translateX(-50%); background:#fff; color:#222; border-radius:14px; box-shadow:0 8px 32px rgba(0,0,0,0.22); padding:18px 24px; z-index:300; min-width:270px; max-width:340px; text-align:center;">
+        <div style="font-size:15px;font-weight:bold;margin-bottom:6px;">📲 添加到主屏幕</div>
+        <div style="font-size:13px;opacity:0.7;margin-bottom:14px;">安装 The Last Book，离线也能使用</div>
+        <div style="display:flex;gap:10px;justify-content:center;">
+            <button onclick="doInstall()" style="background:#b8211b;color:#fff;border:none;border-radius:8px;padding:9px 22px;font-size:14px;cursor:pointer;font-weight:bold;">安装</button>
+            <button onclick="dismissInstall()" style="background:#eee;color:#555;border:none;border-radius:8px;padding:9px 18px;font-size:14px;cursor:pointer;">不了</button>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -439,12 +470,17 @@ async function simulateAIAnalysis(text) { return new Promise(resolve => { setTim
         const reader = new FileReader();
         reader.onload = function(e) {
             const editor = document.getElementById('detail-editor');
-            const img = `<img src="${e.target.result}" onclick="this.remove()">`;
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            img.onclick = function() {
+                const lb = document.getElementById('img-lightbox');
+                document.getElementById('img-lightbox-img').src = this.src;
+                lb.classList.add('open');
+            };
             if (editor.innerHTML.trim() === '' || editor.innerHTML === '<br>') {
-                editor.innerHTML = img;
-            } else {
-                editor.innerHTML += img;
+                editor.innerHTML = '';
             }
+            editor.appendChild(img);
             checkEditorEmpty(editor);
         };
         reader.readAsDataURL(file);
@@ -471,14 +507,7 @@ async function simulateAIAnalysis(text) { return new Promise(resolve => { setTim
     }
 
     function renderHistory(historyArr) {
-        const hContainer = document.getElementById('timeline-history');
-        hContainer.innerHTML = '';
-        historyArr.forEach(h => {
-            const div = document.createElement('div');
-            div.className = 'history-card';
-            div.innerHTML = `<strong>${h.time}</strong><br><span style="opacity:0.8; color: var(--danger-color)">【验证】</span> ${h.blocker}`;
-            hContainer.appendChild(div);
-        });
+        // 历史数据保存在 note.history，通过红色文件夹按钮轮播查看
     }
 
     function initSortable() {
@@ -517,19 +546,73 @@ async function simulateAIAnalysis(text) { return new Promise(resolve => { setTim
         initSortable();
     }
 
-    // 捕获安装事件，用户下次点击时弹出原生安装框
+    // ========== 历史轮播 ==========
+    let carouselItems = [];
+    let carouselIndex = 0;
+
+    function openHistoryCarousel() {
+        if (!currentActiveNoteId) return;
+        let note = notes.find(n => n.id === currentActiveNoteId) || archived.find(n => n.id === currentActiveNoteId);
+        if (!note || !note.history || note.history.length === 0) {
+            alert('暂无历史记录');
+            return;
+        }
+        carouselItems = note.history;
+        carouselIndex = 0;
+        const modal = document.getElementById('history-carousel');
+        modal.style.display = 'flex';
+        renderCarouselCard();
+    }
+
+    function closeHistoryCarousel() {
+        document.getElementById('history-carousel').style.display = 'none';
+    }
+
+    function renderCarouselCard() {
+        const h = carouselItems[carouselIndex];
+        document.getElementById('carousel-inner').innerHTML = `
+            <div style="background:rgba(255,255,255,0.1);border-radius:12px;padding:24px 20px;color:#fff;min-height:100px;">
+                <div style="font-size:13px;opacity:0.6;margin-bottom:10px;">${h.time}</div>
+                <div style="font-size:15px;color:#ffaaaa;margin-bottom:6px;">【验证】</div>
+                <div style="font-size:15px;line-height:1.6;">${h.blocker || '（无内容）'}</div>
+            </div>`;
+        document.getElementById('carousel-counter').textContent = `${carouselIndex + 1} / ${carouselItems.length}`;
+    }
+
+    function carouselPrev() {
+        if (carouselIndex > 0) { carouselIndex--; renderCarouselCard(); }
+    }
+    function carouselNext() {
+        if (carouselIndex < carouselItems.length - 1) { carouselIndex++; renderCarouselCard(); }
+    }
+
+    // ========== PWA 安装 — 刷新弹一次，不再打扰 ==========
     let deferredPrompt = null;
     window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
         deferredPrompt = e;
-        // 用户任意点击就触发安装弹窗
-        document.addEventListener('click', triggerInstall, { once: true });
+        // 本次刷新是否已经展示过
+        if (!sessionStorage.getItem('installPromptShown') && !localStorage.getItem('installDismissed')) {
+            setTimeout(() => {
+                document.getElementById('install-prompt').style.display = 'block';
+                sessionStorage.setItem('installPromptShown', '1');
+            }, 1500);
+        }
     });
-    window.addEventListener('appinstalled', () => { deferredPrompt = null; });
-    function triggerInstall() {
+    window.addEventListener('appinstalled', () => {
+        deferredPrompt = null;
+        document.getElementById('install-prompt').style.display = 'none';
+        localStorage.setItem('installDismissed', '1');
+    });
+    function doInstall() {
+        document.getElementById('install-prompt').style.display = 'none';
         if (!deferredPrompt) return;
         deferredPrompt.prompt();
         deferredPrompt.userChoice.then(() => { deferredPrompt = null; });
+    }
+    function dismissInstall() {
+        document.getElementById('install-prompt').style.display = 'none';
+        localStorage.setItem('installDismissed', '1');
     }
 
 </script>
