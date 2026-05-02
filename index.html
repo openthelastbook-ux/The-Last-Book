@@ -5,13 +5,9 @@
     <!-- 优化：加入 interactive-widget=resizes-content 确保键盘弹出时重绘视口，不遮挡输入框 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content">
     <title>The Last Book - Minimal Note</title>
-    <!-- Google Fonts 异步加载，不会阻塞首次渲染 -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Playfair+Display:wght@400;700&family=Zilla+Slab:wght@400;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
-    <noscript><link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Playfair+Display:wght@400;700&family=Zilla+Slab:wght@400;600&display=swap" rel="stylesheet"></noscript>
-    <!-- Sortable 延迟加载 -->
-    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js" onload="onSortableReady()"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Playfair+Display:wght@400;700&family=Zilla+Slab:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
 
     <style>
         /* ================= 基础变量与主题 ================= */
@@ -122,14 +118,14 @@
 <div id="app">
     <div id="list-view">
         <div class="header dynamic-border">
-            <svg onclick="openArchive()" style="cursor:pointer; width:20px; height:20px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="4" rx="1"/><path d="M4 8v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><path d="M10 12h4"/></svg>
+            <i class="fa-solid fa-box-archive" onclick="openArchive()" style="cursor:pointer; font-size: 20px;"></i>
             <span>THE LAST BOOK</span>
             <div class="theme-cycle" onclick="cycleTheme()"></div>
         </div>
         <div id="notes-container"></div>
         <div id="input-area">
             <textarea id="main-input" placeholder="输入想法..." rows="1" oninput="autoResize(this)"></textarea>
-            <button id="send-btn" onclick="addNote()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg></button>
+            <button id="send-btn" onclick="addNote()"><i class="fa-solid fa-arrow-up"></i></button>
         </div>
     </div>
 
@@ -137,16 +133,16 @@
         <div class="header dynamic-border">
             <span style="width: 20px;"></span>
             <span>收纳筐 / Archive</span>
-            <svg class="back-btn" onclick="closeArchive()" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            <i class="fa-solid fa-times back-btn" onclick="closeArchive()"></i>
         </div>
         <div id="archive-container" style="flex: 1; overflow-y: auto; padding: 20px;"></div>
     </div>
 
     <div id="detail-view">
         <div class="detail-header dynamic-border">
-            <svg class="back-btn" onclick="closeDetail()" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            <i class="fa-solid fa-chevron-left back-btn" onclick="closeDetail()"></i>
             <span style="flex:1; text-align: center; font-weight:bold;">详情 / Details</span>
-            <svg style="font-size:20px; cursor:pointer; padding:8px; opacity:0.7;" onclick="document.getElementById('detail-img-input').click()" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            <i class="fa-solid fa-image" style="font-size:20px; cursor:pointer; padding:8px; opacity:0.7;" onclick="document.getElementById('detail-img-input').click()"></i>
         </div>
         <div id="detail-editor" contenteditable="true" data-empty="true" oninput="checkEditorEmpty(this)"></div>
         <div id="detail-bottom-panel">
@@ -156,11 +152,10 @@
             </div>
             <div class="folder-action" style="display:flex;flex-direction:column;gap:6px;">
                 <button class="archive-timeline-btn" onclick="archiveTimeline()">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    <i class="fa-solid fa-folder-minus"></i><i class="fa-solid fa-arrow-left"></i>
                 </button>
                 <button class="archive-timeline-btn" style="background:#b8211b;" onclick="openHistoryCarousel()">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/><path d="M9 14h6"/></svg>
+                    <i class="fa-solid fa-folder-open"></i>
                 </button>
             </div>
             <input type="file" id="detail-img-input" accept="image/*" style="display:none" onchange="insertImage(this)">
@@ -169,28 +164,56 @@
 
     <!-- 图片放大层 -->
     <div id="img-lightbox" onclick="this.classList.remove('open')">
-        <button id="img-lightbox-close" onclick="document.getElementById('img-lightbox').classList.remove('open')"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+        <button id="img-lightbox-close" onclick="document.getElementById('img-lightbox').classList.remove('open')"><i class="fa-solid fa-xmark"></i></button>
         <img id="img-lightbox-img" src="" alt="">
     </div>
 
     <!-- 历史轮播全屏弹窗 -->
     <div id="history-carousel" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.88); z-index:200; flex-direction:column; align-items:center; justify-content:center;">
-        <button onclick="closeHistoryCarousel()" style="position:absolute;top:18px;right:22px;background:none;border:none;color:#fff;font-size:28px;cursor:pointer;z-index:10;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+        <button onclick="closeHistoryCarousel()" style="position:absolute;top:18px;right:22px;background:none;border:none;color:#fff;font-size:28px;cursor:pointer;z-index:10;"><i class="fa-solid fa-xmark"></i></button>
         <div id="carousel-inner" style="width:100%;max-width:480px;padding:0 30px;"></div>
         <div style="display:flex;gap:18px;margin-top:22px;">
-            <button onclick="carouselPrev()" style="background:rgba(255,255,255,0.15);border:none;color:#fff;font-size:22px;padding:10px 18px;border-radius:50%;cursor:pointer;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+            <button onclick="carouselPrev()" style="background:rgba(255,255,255,0.15);border:none;color:#fff;font-size:22px;padding:10px 18px;border-radius:50%;cursor:pointer;"><i class="fa-solid fa-chevron-left"></i></button>
             <span id="carousel-counter" style="color:#fff;opacity:0.7;align-self:center;font-size:14px;"></span>
-            <button onclick="carouselNext()" style="background:rgba(255,255,255,0.15);border:none;color:#fff;font-size:22px;padding:10px 18px;border-radius:50%;cursor:pointer;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
+            <button onclick="carouselNext()" style="background:rgba(255,255,255,0.15);border:none;color:#fff;font-size:22px;padding:10px 18px;border-radius:50%;cursor:pointer;"><i class="fa-solid fa-chevron-right"></i></button>
         </div>
     </div>
 
     <!-- PWA 安装提示弹窗 -->
-    <div id="install-prompt" style="display:none; position:fixed; bottom:30px; left:50%; transform:translateX(-50%); background:#fff; color:#222; border-radius:14px; box-shadow:0 8px 32px rgba(0,0,0,0.22); padding:18px 24px; z-index:300; min-width:270px; max-width:340px; text-align:center;">
-        <div style="font-size:15px;font-weight:bold;margin-bottom:6px;">📲 添加到主屏幕</div>
-        <div style="font-size:13px;opacity:0.7;margin-bottom:14px;">安装 The Last Book，离线也能使用</div>
-        <div style="display:flex;gap:10px;justify-content:center;">
-            <button id="install-btn" onclick="doInstall()" style="background:#b8211b;color:#fff;border:none;border-radius:8px;padding:9px 22px;font-size:14px;cursor:pointer;font-weight:bold;min-width:66px;">安装</button>
-            <button onclick="dismissInstall()" style="background:#eee;color:#555;border:none;border-radius:8px;padding:9px 18px;font-size:14px;cursor:pointer;">不了</button>
+    <div id="install-prompt" style="display:none; position:fixed; bottom:30px; left:50%; transform:translateX(-50%); background:#fff; color:#222; border-radius:14px; box-shadow:0 8px 32px rgba(0,0,0,0.22); padding:20px 24px; z-index:300; min-width:280px; max-width:340px; text-align:center; transition: all 0.3s ease;">
+
+        <!-- 状态A：初始提示 -->
+        <div id="install-state-idle">
+            <div style="font-size:22px;margin-bottom:6px;">📲</div>
+            <div style="font-size:15px;font-weight:bold;margin-bottom:4px;">添加到主屏幕</div>
+            <div style="font-size:12px;opacity:0.55;margin-bottom:16px;">安装后可离线使用，随时打开</div>
+            <div style="display:flex;gap:10px;justify-content:center;">
+                <button onclick="doInstall()" style="background:#b8211b;color:#fff;border:none;border-radius:8px;padding:9px 22px;font-size:14px;cursor:pointer;font-weight:bold;flex:1;">安装</button>
+                <button onclick="dismissInstall()" style="background:#f0f0f0;color:#666;border:none;border-radius:8px;padding:9px 16px;font-size:13px;cursor:pointer;">不了</button>
+            </div>
+        </div>
+
+        <!-- 状态B：等待中（进度条） -->
+        <div id="install-state-loading" style="display:none;">
+            <div style="font-size:13px;color:#555;margin-bottom:12px;" id="install-loading-text">请在弹出的系统窗口中确认安装…</div>
+            <div style="background:#f0f0f0;border-radius:99px;height:6px;overflow:hidden;margin-bottom:10px;">
+                <div id="install-progress-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#b8211b,#e74c3c);border-radius:99px;transition:width 0.4s ease;"></div>
+            </div>
+            <div id="install-progress-label" style="font-size:11px;color:#aaa;">0%</div>
+        </div>
+
+        <!-- 状态C：成功 -->
+        <div id="install-state-success" style="display:none;">
+            <div style="font-size:28px;margin-bottom:8px;">✅</div>
+            <div style="font-size:15px;font-weight:bold;color:#2d8a4e;margin-bottom:4px;">安装成功！</div>
+            <div style="font-size:12px;opacity:0.5;">已添加到主屏幕，可以关闭啦</div>
+        </div>
+
+        <!-- 状态D：取消/失败 -->
+        <div id="install-state-cancelled" style="display:none;">
+            <div style="font-size:22px;margin-bottom:6px;">🙅</div>
+            <div style="font-size:14px;color:#888;margin-bottom:12px;">下次想装随时回来~</div>
+            <button onclick="dismissInstall()" style="background:#f0f0f0;color:#666;border:none;border-radius:8px;padding:8px 20px;font-size:13px;cursor:pointer;">关闭</button>
         </div>
     </div>
 </div>
@@ -307,7 +330,7 @@ async function simulateAIAnalysis(text) { return new Promise(resolve => { setTim
             div.style.padding = '0'; div.style.marginBottom = '15px'; div.style.opacity = '0.8';
             div.innerHTML = `
                 <div class="archive-item-layout">
-                    <div class="archive-delete-btn" onclick="deleteFromArchive('${note.id}', event)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>
+                    <div class="archive-delete-btn" onclick="deleteFromArchive('${note.id}', event)"><i class="fa-solid fa-xmark"></i></div>
                     <div class="archive-text-area" onclick="openDetail('${note.id}')">已收纳: ${note.summary}</div>
                     <div class="archive-restore-btn" onclick="restoreFromArchive('${note.id}', event)">🫱</div>
                 </div>
@@ -516,10 +539,6 @@ async function simulateAIAnalysis(text) { return new Promise(resolve => { setTim
     }
 
     function initSortable() {
-        if (typeof Sortable === 'undefined') {
-            // Sortable 还没加载完成，下次再试
-            return;
-        }
         new Sortable(document.getElementById('notes-container'), {
             animation: 200, delay: 300, delayOnTouchOnly: false, chosenClass: 'note-chosen', ghostClass: 'note-ghost',
             filter: '[contenteditable="true"]', preventOnFilter: false,
@@ -548,14 +567,11 @@ async function simulateAIAnalysis(text) { return new Promise(resolve => { setTim
         switchTheme(THEMES[themeIndex]);
     }
 
-    let sortableReady = false;
-    function onSortableReady() { sortableReady = true; if (typeof initSortable === 'function') initSortable(); }
-
     window.onload = () => {
         if ("serviceWorker" in navigator) { navigator.serviceWorker.register("/sw.js"); }
 
         loadData();
-        if (sortableReady) initSortable(); else setTimeout(initSortable, 2000);
+        initSortable();
     }
 
     // ========== 历史轮播 ==========
@@ -600,32 +616,102 @@ async function simulateAIAnalysis(text) { return new Promise(resolve => { setTim
 
     // ========== PWA 安装 — 刷新弹一次，不再打扰 ==========
     let deferredPrompt = null;
+
     window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
         deferredPrompt = e;
-        // 本次刷新是否已经展示过
         if (!sessionStorage.getItem('installPromptShown') && !localStorage.getItem('installDismissed')) {
             setTimeout(() => {
+                showInstallState('idle');
                 document.getElementById('install-prompt').style.display = 'block';
                 sessionStorage.setItem('installPromptShown', '1');
-            }, 800);
+            }, 1500);
         }
     });
+
     window.addEventListener('appinstalled', () => {
         deferredPrompt = null;
-        document.getElementById('install-prompt').style.display = 'none';
+        showInstallState('success');
         localStorage.setItem('installDismissed', '1');
+        setTimeout(() => {
+            document.getElementById('install-prompt').style.display = 'none';
+        }, 2800);
     });
-    function doInstall() {
-        document.getElementById('install-prompt').style.display = 'none';
-        if (!deferredPrompt) return;
-        const btn = document.getElementById('install-btn');
-        btn.textContent = '安装中...';
-        btn.disabled = true;
-        deferredPrompt.prompt();
-        deferredPrompt.userChoice.then(() => { deferredPrompt = null; btn.textContent = '安装'; btn.disabled = false; });
+
+    function showInstallState(state) {
+        ['idle','loading','success','cancelled'].forEach(s => {
+            document.getElementById('install-state-' + s).style.display = s === state ? 'block' : 'none';
+        });
     }
+
+    let _progressTimer = null;
+    let _progressVal = 0;
+
+    function startFakeProgress() {
+        _progressVal = 0;
+        clearInterval(_progressTimer);
+        const bar = document.getElementById('install-progress-bar');
+        const label = document.getElementById('install-progress-label');
+        const textEl = document.getElementById('install-loading-text');
+
+        const messages = [
+            [0,  '请在弹出的系统窗口中确认安装…'],
+            [40, '正在准备安装包…'],
+            [70, '即将完成，稍等一下…'],
+            [88, '快好了…'],
+        ];
+
+        _progressTimer = setInterval(() => {
+            // 快速到40，然后放慢，卡在92等真实结果
+            if (_progressVal < 40)      _progressVal += 2.5;
+            else if (_progressVal < 70) _progressVal += 0.8;
+            else if (_progressVal < 88) _progressVal += 0.3;
+            else if (_progressVal < 92) _progressVal += 0.05;
+            // 92之后卡住，等 userChoice resolve
+
+            _progressVal = Math.min(_progressVal, 92);
+            bar.style.width = _progressVal + '%';
+            label.textContent = Math.floor(_progressVal) + '%';
+
+            // 更新文字提示
+            for (let i = messages.length - 1; i >= 0; i--) {
+                if (_progressVal >= messages[i][0]) {
+                    textEl.textContent = messages[i][1];
+                    break;
+                }
+            }
+        }, 80);
+    }
+
+    function finishProgress(success) {
+        clearInterval(_progressTimer);
+        const bar = document.getElementById('install-progress-bar');
+        const label = document.getElementById('install-progress-label');
+        if (success) {
+            bar.style.width = '100%';
+            label.textContent = '100%';
+            setTimeout(() => showInstallState('success'), 400);
+            setTimeout(() => {
+                document.getElementById('install-prompt').style.display = 'none';
+            }, 3200);
+        } else {
+            showInstallState('cancelled');
+        }
+    }
+
+    async function doInstall() {
+        if (!deferredPrompt) return;
+        showInstallState('loading');
+        startFakeProgress();
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        deferredPrompt = null;
+        finishProgress(outcome === 'accepted');
+        if (outcome === 'dismissed') localStorage.setItem('installDismissed', '1');
+    }
+
     function dismissInstall() {
+        clearInterval(_progressTimer);
         document.getElementById('install-prompt').style.display = 'none';
         localStorage.setItem('installDismissed', '1');
     }
