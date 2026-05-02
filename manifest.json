@@ -5,6 +5,7 @@
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
+  "display_override": ["standalone"],
   "orientation": "any",
   "dir": "ltr",
   "background_color": "#8ba285",
