@@ -180,40 +180,53 @@
     </div>
 
     <!-- PWA 安装提示弹窗 -->
-    <div id="install-prompt" style="display:none; position:fixed; bottom:30px; left:50%; transform:translateX(-50%); background:#fff; color:#222; border-radius:14px; box-shadow:0 8px 32px rgba(0,0,0,0.22); padding:20px 24px; z-index:300; min-width:280px; max-width:340px; text-align:center; transition: all 0.3s ease;">
+    <div id="install-prompt" style="display:none; position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#fff; color:#222; border-radius:16px; box-shadow:0 8px 40px rgba(0,0,0,0.18); padding:20px 22px; z-index:300; min-width:288px; max-width:340px; text-align:center;">
 
         <!-- 状态A：初始提示 -->
         <div id="install-state-idle">
-            <div style="font-size:22px;margin-bottom:6px;">📲</div>
+            <div style="font-size:24px;margin-bottom:8px;">📲</div>
             <div style="font-size:15px;font-weight:bold;margin-bottom:4px;">添加到主屏幕</div>
-            <div style="font-size:12px;opacity:0.55;margin-bottom:16px;">安装后可离线使用，随时打开</div>
-            <div style="display:flex;gap:10px;justify-content:center;">
-                <button onclick="doInstall()" style="background:#b8211b;color:#fff;border:none;border-radius:8px;padding:9px 22px;font-size:14px;cursor:pointer;font-weight:bold;flex:1;">安装</button>
-                <button onclick="dismissInstall()" style="background:#f0f0f0;color:#666;border:none;border-radius:8px;padding:9px 16px;font-size:13px;cursor:pointer;">不了</button>
+            <div style="font-size:12px;color:#888;margin-bottom:18px;line-height:1.5;">离线可用 · 启动更快 · 不占存储</div>
+            <div style="display:flex;gap:10px;">
+                <button onclick="doInstall()" style="background:#b8211b;color:#fff;border:none;border-radius:9px;padding:10px 0;font-size:14px;cursor:pointer;font-weight:bold;flex:1;">安装</button>
+                <button onclick="dismissInstall()" style="background:#f2f2f2;color:#666;border:none;border-radius:9px;padding:10px 16px;font-size:13px;cursor:pointer;">不了</button>
             </div>
         </div>
 
-        <!-- 状态B：等待中（进度条） -->
-        <div id="install-state-loading" style="display:none;">
-            <div style="font-size:13px;color:#555;margin-bottom:12px;" id="install-loading-text">请在弹出的系统窗口中确认安装…</div>
-            <div style="background:#f0f0f0;border-radius:99px;height:6px;overflow:hidden;margin-bottom:10px;">
-                <div id="install-progress-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#b8211b,#e74c3c);border-radius:99px;transition:width 0.4s ease;"></div>
+        <!-- 状态B：等待用户在系统弹窗操作 -->
+        <div id="install-state-waiting" style="display:none;">
+            <div style="font-size:13px;font-weight:bold;color:#333;margin-bottom:14px;">👆 请在上方弹窗中点击"安装"</div>
+            <!-- 三步引导 -->
+            <div style="display:flex;flex-direction:column;gap:8px;text-align:left;margin-bottom:16px;">
+                <div id="install-step-1" style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:9px;background:#fff8f8;border:1.5px solid #b8211b;">
+                    <span style="width:22px;height:22px;border-radius:50%;background:#b8211b;color:#fff;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">1</span>
+                    <span style="font-size:13px;color:#333;">系统弹窗已出现</span>
+                    <span style="margin-left:auto;font-size:16px;">⬆️</span>
+                </div>
+                <div id="install-step-2" style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:9px;background:#f7f7f7;border:1.5px solid #ddd;">
+                    <span style="width:22px;height:22px;border-radius:50%;background:#ddd;color:#fff;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">2</span>
+                    <span style="font-size:13px;color:#aaa;">点击弹窗中的"安装"</span>
+                </div>
+                <div id="install-step-3" style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:9px;background:#f7f7f7;border:1.5px solid #ddd;">
+                    <span style="width:22px;height:22px;border-radius:50%;background:#ddd;color:#fff;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">3</span>
+                    <span style="font-size:13px;color:#aaa;">完成，图标出现在桌面</span>
+                </div>
             </div>
-            <div id="install-progress-label" style="font-size:11px;color:#aaa;">0%</div>
+            <div style="font-size:11px;color:#bbb;">若弹窗未出现，请刷新页面再试</div>
         </div>
 
-        <!-- 状态C：成功 -->
+        <!-- 状态C：安装成功 -->
         <div id="install-state-success" style="display:none;">
-            <div style="font-size:28px;margin-bottom:8px;">✅</div>
-            <div style="font-size:15px;font-weight:bold;color:#2d8a4e;margin-bottom:4px;">安装成功！</div>
-            <div style="font-size:12px;opacity:0.5;">已添加到主屏幕，可以关闭啦</div>
+            <div style="font-size:32px;margin-bottom:10px;">🎉</div>
+            <div style="font-size:15px;font-weight:bold;color:#2a7a45;margin-bottom:4px;">已添加到主屏幕</div>
+            <div style="font-size:12px;color:#aaa;">可以从桌面直接打开了</div>
         </div>
 
-        <!-- 状态D：取消/失败 -->
+        <!-- 状态D：用户取消了系统弹窗 -->
         <div id="install-state-cancelled" style="display:none;">
-            <div style="font-size:22px;margin-bottom:6px;">🙅</div>
-            <div style="font-size:14px;color:#888;margin-bottom:12px;">下次想装随时回来~</div>
-            <button onclick="dismissInstall()" style="background:#f0f0f0;color:#666;border:none;border-radius:8px;padding:8px 20px;font-size:13px;cursor:pointer;">关闭</button>
+            <div style="font-size:22px;margin-bottom:8px;">👌</div>
+            <div style="font-size:14px;color:#666;margin-bottom:14px;line-height:1.5;">没关系，下次想装<br>刷新页面就能再试</div>
+            <button onclick="dismissInstall()" style="background:#f2f2f2;color:#666;border:none;border-radius:9px;padding:9px 24px;font-size:13px;cursor:pointer;">关闭</button>
         </div>
     </div>
 </div>
@@ -635,83 +648,70 @@ async function simulateAIAnalysis(text) { return new Promise(resolve => { setTim
         localStorage.setItem('installDismissed', '1');
         setTimeout(() => {
             document.getElementById('install-prompt').style.display = 'none';
-        }, 2800);
+        }, 3000);
     });
 
     function showInstallState(state) {
-        ['idle','loading','success','cancelled'].forEach(s => {
-            document.getElementById('install-state-' + s).style.display = s === state ? 'block' : 'none';
+        ['idle', 'waiting', 'success', 'cancelled'].forEach(s => {
+            const el = document.getElementById('install-state-' + s);
+            if (el) el.style.display = s === state ? 'block' : 'none';
         });
     }
 
-    let _progressTimer = null;
-    let _progressVal = 0;
+    // 等待状态时，依次高亮步骤2、3，让用户知道该做什么
+    let _stepTimer = null;
+    function animateSteps() {
+        const steps = ['install-step-1', 'install-step-2', 'install-step-3'];
+        const activeStyle  = { bg: '#fff8f8', border: '1.5px solid #b8211b', numBg: '#b8211b', textColor: '#333' };
+        const doneStyle    = { bg: '#f0faf4', border: '1.5px solid #5cb85c', numBg: '#5cb85c', textColor: '#333' };
+        const pendingStyle = { bg: '#f7f7f7', border: '1.5px solid #ddd',    numBg: '#ddd',    textColor: '#aaa' };
 
-    function startFakeProgress() {
-        _progressVal = 0;
-        clearInterval(_progressTimer);
-        const bar = document.getElementById('install-progress-bar');
-        const label = document.getElementById('install-progress-label');
-        const textEl = document.getElementById('install-loading-text');
-
-        const messages = [
-            [0,  '请在弹出的系统窗口中确认安装…'],
-            [40, '正在准备安装包…'],
-            [70, '即将完成，稍等一下…'],
-            [88, '快好了…'],
-        ];
-
-        _progressTimer = setInterval(() => {
-            // 快速到40，然后放慢，卡在92等真实结果
-            if (_progressVal < 40)      _progressVal += 2.5;
-            else if (_progressVal < 70) _progressVal += 0.8;
-            else if (_progressVal < 88) _progressVal += 0.3;
-            else if (_progressVal < 92) _progressVal += 0.05;
-            // 92之后卡住，等 userChoice resolve
-
-            _progressVal = Math.min(_progressVal, 92);
-            bar.style.width = _progressVal + '%';
-            label.textContent = Math.floor(_progressVal) + '%';
-
-            // 更新文字提示
-            for (let i = messages.length - 1; i >= 0; i--) {
-                if (_progressVal >= messages[i][0]) {
-                    textEl.textContent = messages[i][1];
-                    break;
-                }
-            }
-        }, 80);
-    }
-
-    function finishProgress(success) {
-        clearInterval(_progressTimer);
-        const bar = document.getElementById('install-progress-bar');
-        const label = document.getElementById('install-progress-label');
-        if (success) {
-            bar.style.width = '100%';
-            label.textContent = '100%';
-            setTimeout(() => showInstallState('success'), 400);
-            setTimeout(() => {
-                document.getElementById('install-prompt').style.display = 'none';
-            }, 3200);
-        } else {
-            showInstallState('cancelled');
+        function applyStyle(id, s, label) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.style.background = s.bg;
+            el.style.border = s.border;
+            const num = el.querySelector('span:first-child');
+            if (num) num.style.background = s.numBg;
+            const txt = el.querySelectorAll('span')[1];
+            if (txt) txt.style.color = s.textColor;
         }
+
+        // 步骤1已激活（系统弹窗已出现）
+        applyStyle('install-step-1', activeStyle);
+        applyStyle('install-step-2', pendingStyle);
+        applyStyle('install-step-3', pendingStyle);
+
+        // 2秒后高亮步骤2，提示用户点击
+        _stepTimer = setTimeout(() => {
+            applyStyle('install-step-1', doneStyle);
+            applyStyle('install-step-2', activeStyle);
+        }, 2000);
     }
 
     async function doInstall() {
         if (!deferredPrompt) return;
-        showInstallState('loading');
-        startFakeProgress();
+        showInstallState('waiting');
+        animateSteps();
         deferredPrompt.prompt();
         const { outcome } = await deferredPrompt.userChoice;
         deferredPrompt = null;
-        finishProgress(outcome === 'accepted');
-        if (outcome === 'dismissed') localStorage.setItem('installDismissed', '1');
+        clearTimeout(_stepTimer);
+        if (outcome === 'accepted') {
+            // appinstalled 事件会触发，也做兜底
+            showInstallState('success');
+            localStorage.setItem('installDismissed', '1');
+            setTimeout(() => {
+                document.getElementById('install-prompt').style.display = 'none';
+            }, 3000);
+        } else {
+            showInstallState('cancelled');
+            // 取消不写 dismissed，允许下次刷新再提示（但本 session 不再弹）
+        }
     }
 
     function dismissInstall() {
-        clearInterval(_progressTimer);
+        clearTimeout(_stepTimer);
         document.getElementById('install-prompt').style.display = 'none';
         localStorage.setItem('installDismissed', '1');
     }
