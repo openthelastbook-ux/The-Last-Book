@@ -1,4 +1,4 @@
-const CACHE_NAME = 'lastbook-v2';
+const CACHE_NAME = 'lastbook-v3';
 const LOCAL_URLS = [
   '/',
   '/index.html',
